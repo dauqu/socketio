@@ -27,14 +27,14 @@
       const message = document.getElementById('message').value;
       
       // Emit the chat message event with user ID and message
-      socket.emit('chat message', userId, message);
+      socket.emit('chat-message', userId, message);
       
       // Clear the message input field
       document.getElementById('message').value = '';
     });
 
     // Listen for chat message event
-    socket.on('chat message', (userId, msg) => {
+    socket.on('chat-message', (userId, msg) => {
       // Create a new message element and append it to the messages div
       const messageElement = document.createElement('p');
       messageElement.textContent = `${userId}: ${msg}`;
