@@ -1,32 +1,33 @@
-const express = require('express');
-const app = express();
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
-const fs = require('fs');
+const express = require('express')
+const app = express()
+const server = require('http').Server(app)
+const io = require('socket.io')(server)
+const { v4: uuidV4 } = require('uuid')
 
-// Serve static files from a public directory
-app.use(express.static(__dirname + '/public'));
+app.set('view engine', 'ejs')
+app.use(express.static('public'))
 
-// Listen for Socket.IO connections
-io.on('connection', (socket) => {
-  console.log('A user connected');
+app.get('/', (req, res) => {
+  res.redirect(`/${uuidV4()}`)
+})
 
-  // Listen for video stream data
-  socket.on('stream', (data) => {
-    // Write the video stream data to a file
-    fs.appendFileSync('output.webm', data);
-    // Emit the stream data to all connected sockets, including the sender
-    socket.broadcast.emit('stream', data);
-  });
+app.get('/:room', (req, res) => {
+  res.render('room', { roomId: req.params.room })
+})
 
-  // Listen for disconnections
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
-});
+io.on('connection', socket => {
+  socket.on('join-room', (roomId, userId) => {
+    socket.join(roomId)
+    socket.to(roomId).broadcast.emit('user-connected', userId)
+
+    socket.on('disconnect', () => {
+      socket.to(roomId).broadcast.emit('user-disconnected', userId)
+    })
+  })
+})
 
 // Start the server
-const port = process.env.PORT || 3000;
-server.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+server.listen(process.env.PORT || 3000, () => {
+  console.log('Server started on port 3000');
 });
+ 

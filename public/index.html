@@ -1,34 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Video Streaming</title>
+  <title>Chat Room</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>Local Video</h1>
-  <video id="localVideo" autoplay></video>
-
-  <h1>Remote Video</h1>
-  <video id="remoteVideo" autoplay></video>
-
+  <div id="chat-container">
+    <div id="chat-header">
+      <h1>Chat Room</h1>
+    </div>
+    <div id="chat-messages"></div>
+    <form id="chat-form">
+      <input type="text" id="chat-input" autocomplete="off" placeholder="Type your message...">
+      <button type="submit">Send</button>
+    </form>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
-    // Get local video stream and display it in the local video box
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        const localVideo = document.getElementById('localVideo');
-        localVideo.srcObject = stream;
-      })
-      .catch(error => {
-        console.error('Error accessing local video stream:', error);
-      });
+    // Get room ID from URL
+    const roomId = window.location.pathname.substring(1);
 
-    // Listen for 'stream' event and update remote video box with the streamed data
-    socket.on('stream', data => {
-      const remoteVideo = document.getElementById('remoteVideo');
-      remoteVideo.srcObject = data;
+    // Send join-room event to server when page loads
+    socket.emit('join-room', roomId, generateUserId());
+
+    // Send chat message to server when form is submitted
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = chatInput.value.trim();
+      if (message !== '') {
+        appendMessage('You', message);
+        socket.emit('chat-message', roomId, getUserId(), message);
+        chatInput.value = '';
+      }
     });
+
+    // Receive user-connected event from server
+    socket.on('user-connected', (userId) => {
+      appendMessage('System', `${userId} has joined the room`);
+    });
+
+    // Receive chat-message event from server
+    socket.on('chat-message', (userId, message) => {
+      appendMessage(userId, message);
+    });
+
+    // Append a new message to the chat messages container
+    function appendMessage(sender, message) {
+      const chatMessages = document.getElementById('chat-messages');
+      const messageElement = document.createElement('div');
+      messageElement.className = 'chat-message';
+      messageElement.innerHTML = `<span class="chat-sender">${sender}: </span>${message}`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Generate a random user ID
+    function generateUserId() {
+      return 'User_' + Math.floor(Math.random() * 10000);
+    }
+
+    // Get user ID from localStorage or generate a new one
+    function getUserId() {
+      let userId = localStorage.getItem('userId');
+      if (!userId) {
+        userId = generateUserId();
+        localStorage.setItem('userId', userId);
+      }
+      return userId;
+    }
   </script>
 </body>
 </html>
