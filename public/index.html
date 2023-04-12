@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Stream</title>
+</head>
+<body>
+  <h1>Video Stream</h1>
+  <video id="localVideo" autoplay></video>
+  <video id="remoteVideo" autoplay></video>
+  <script>
+    // DOM elements
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+
+    // Get user media (camera)
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then((stream) => {
+        // Set local video source and add stream to peer connection
+        localVideo.srcObject = stream;
+        const pc = new RTCPeerConnection();
+        stream.getTracks().forEach((track) => {
+          pc.addTrack(track, stream);
+        });
+
+        // Listen for ICE candidates
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            // Send ICE candidate to remote peer
+            // (You would need to implement a signaling mechanism to send the candidates to the remote peer)
+          }
+        };
+
+        // Listen for incoming media tracks
+        pc.ontrack = (event) => {
+          // Set remote video source with received media stream
+          remoteVideo.srcObject = event.streams[0];
+        };
+      })
+      .catch((error) => {
+        console.error('Error accessing camera:', error);
+      });
+  </script>
+</body>
+</html>
