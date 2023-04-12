@@ -3,10 +3,9 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-// Set up a route for the home page
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
+//Serve static files from the React app
+app.use(express.static('client/'));
+
 
 // Set up a connection event for Socket.io
 io.on('connection', (socket) => {
