@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+const fs = require('fs');
 
 // Serve static files from a public directory
 app.use(express.static(__dirname + '/public'));
@@ -10,12 +11,12 @@ app.use(express.static(__dirname + '/public'));
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  // Listen for chat messages
-  socket.on('chat message', (message) => {
-    console.log(`Message: ${message}`);
-    
-    // Broadcast the message to all connected clients
-    io.emit('chat message', message);
+  // Listen for video stream data
+  socket.on('stream', (data) => {
+    // Write the video stream data to a file
+    fs.appendFileSync('output.webm', data);
+    // Emit the stream data to all connected sockets, including the sender
+    socket.broadcast.emit('stream', data);
   });
 
   // Listen for disconnections

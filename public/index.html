@@ -1,44 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Video Stream</title>
+  <title>Video Streaming</title>
 </head>
 <body>
-  <h1>Video Stream</h1>
+  <h1>Local Video</h1>
   <video id="localVideo" autoplay></video>
+
+  <h1>Remote Video</h1>
   <video id="remoteVideo" autoplay></video>
+
+  <script src="/socket.io/socket.io.js"></script>
   <script>
-    // DOM elements
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
+    const socket = io();
 
-    // Get user media (camera)
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-      .then((stream) => {
-        // Set local video source and add stream to peer connection
+    // Get local video stream and display it in the local video box
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        const localVideo = document.getElementById('localVideo');
         localVideo.srcObject = stream;
-        const pc = new RTCPeerConnection();
-        stream.getTracks().forEach((track) => {
-          pc.addTrack(track, stream);
-        });
-
-        // Listen for ICE candidates
-        pc.onicecandidate = (event) => {
-          if (event.candidate) {
-            // Send ICE candidate to remote peer
-            // (You would need to implement a signaling mechanism to send the candidates to the remote peer)
-          }
-        };
-
-        // Listen for incoming media tracks
-        pc.ontrack = (event) => {
-          // Set remote video source with received media stream
-          remoteVideo.srcObject = event.streams[0];
-        };
       })
-      .catch((error) => {
-        console.error('Error accessing camera:', error);
+      .catch(error => {
+        console.error('Error accessing local video stream:', error);
       });
+
+    // Listen for 'stream' event and update remote video box with the streamed data
+    socket.on('stream', data => {
+      const remoteVideo = document.getElementById('remoteVideo');
+      remoteVideo.srcObject = data;
+    });
   </script>
 </body>
 </html>
