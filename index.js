@@ -14,21 +14,29 @@ io.on('connection', (socket) => {
   // Join a room
   socket.on('join', (room) => {
     socket.join(room);
-    console.log(`User joined room: ${room}`);
   });
 
   // Leave a room
   socket.on('leave', (room) => {
     socket.leave(room);
-    console.log(`User left room: ${room}`);
   });
 
   // Set up a custom event for receiving messages
-  socket.on('chat message', (room, msg) => {
-    console.log(`Message in room ${room}: ${msg}`);
-
+  socket.on('chat-message', (room, msg) => {
     // Broadcast the message to all clients in the room
-    io.to(room).emit('chat message', msg);
+    io.to(room).emit('chat-message', msg);
+  });
+
+  //Audio call 
+  socket.on('audio-call', (room, msg) => {
+    // Broadcast the message to all clients in the room
+    io.to(room).emit('audio-call', msg);
+  });
+
+  //Video call
+  socket.on('video-call', (room, msg) => {
+    // Broadcast the message to all clients in the room
+    io.to(room).emit('video-call', msg);
   });
 
   // Set up a disconnect event
