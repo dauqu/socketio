@@ -1,0 +1,45 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.io Chat</title>
+</head>
+<body>
+  <h1>Chat Room</h1>
+  <div id="messages"></div>
+  <form id="chat-form">
+    <input id="user-id" type="text" placeholder="Enter User ID">
+    <input id="message" type="text" placeholder="Type a message...">
+    <button type="submit">Send</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // Get the form element and add a submit event listener
+    document.getElementById('chat-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      
+      // Get the user ID and message from the input fields
+      const userId = document.getElementById('user-id').value;
+      const message = document.getElementById('message').value;
+      
+      // Emit the chat message event with user ID and message
+      socket.emit('chat message', userId, message);
+      
+      // Clear the message input field
+      document.getElementById('message').value = '';
+    });
+
+    // Listen for chat message event
+    socket.on('chat message', (userId, msg) => {
+      // Create a new message element and append it to the messages div
+      const messageElement = document.createElement('p');
+      messageElement.textContent = `${userId}: ${msg}`;
+      document.getElementById('messages').appendChild(messageElement);
+    });
+  </script>
+</body>
+</html>
